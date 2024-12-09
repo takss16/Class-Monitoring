@@ -46,11 +46,10 @@ class SectionController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
-        dd($request);
+        
        
-        $sectionExists = Section::where('name', $request->name)->where('user_id', Auth::id())
-            ->exists();
-
+        $sectionExists = Section::where('name', $request->name)->where('description', $request->description)->where('user_id', Auth::id())
+        ->exists();
         // Optional: Check if student is already enrolled
         if ($sectionExists) {
             return redirect()->back()->with('error', 'Section already exists.');

@@ -78,12 +78,13 @@
                             <p><strong>Course:</strong> {{ $student->course }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Section:</strong> {{ $student->section->name }}</p>
+                            <p><strong>Section:</strong> {{ $student->section->name ?? 'N/A' }}</p> <!-- Use null coalescing operator if no section -->
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        
 
         <!-- Attendance Type Selection Dropdown -->
         <div class="form-group mb-4">

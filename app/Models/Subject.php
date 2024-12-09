@@ -20,8 +20,18 @@ class Subject extends Model
     {
         return $this->belongsTo(Section::class);
     }
+    public function teachers()
+    {
+        return $this->belongsToMany(User::class, 'teacher_subject_section', 'subject_id', 'teacher_id')
+                    ->withPivot('section_id')
+                    ->withTimestamps();
+    }
+    
     public function students()
     {
-        return $this->hasMany(Student::class);
+        return $this->belongsToMany(Student::class, 'student_enrollments')
+                    ->withPivot('section_id')
+                    ->withTimestamps();
     }
+    
 }

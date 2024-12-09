@@ -15,7 +15,11 @@ class SubjectController extends Controller
 {
     public function index()
     {
-        $subjects = Subject::where('user_id', Auth::id())->get();
+        if (auth()->user()->user_type == 'admin') {
+            $subjects = Subject::all();
+        } else {
+            $subjects = Subject::where('user_id', Auth::id())->get();
+        }
         return view('subjects.index', compact('subjects'));
     }
     public function chooseSubjects()
@@ -106,78 +110,78 @@ class SubjectController extends Controller
     }
 
     public function showEnroll(Request $request)
-    {
-        $teacherId = auth()->user()->id;
+{
+    $teacherId = auth()->user()->id;
+    $subjectID = $request->input('subject_id');
 
-        $subjectID = $request->input('subject_id');
+    // Retrieve subject assigned to the authenticated teacher
+    $subject = Subject::where('user_id', $teacherId)
+                      ->where('id', $subjectID)
+                      ->firstOrFail();
 
-        $query = Student::where('user_id', $teacherId);
-        $students = $query->orderBy('id', 'desc')->get();
+    $students = Student::all(); // Get all students
+    $sections = Section::all(); // Get all sections
+    $enrolls = ClassCard::with('student', 'section') // Load relationships
+                        ->where('subject_id', $subjectID)
+                        ->get();
 
-        $sections = Section::where('user_id', $teacherId)->get();
-        $subject = Subject::where('user_id', Auth::id())->where('id', $subjectID)->first();
-        $enrolls = ClassCard::where('subject_id', $subjectID)->get();
-        return view('subjects.enroll', compact('students', 'subject', 'sections', 'enrolls'));
-    }
+    return view('subjects.enroll', compact('students', 'subject', 'sections', 'enrolls'));
+}
 
-    public function enrollStudents(Request $request)
-    {
-        // Validate the request data
-        $request->validate([
-            'enroll_type' => 'required|in:single,section', // Ensure valid enroll type
-        ]);
 
-        // If the enroll type is 'section', enroll all students in that section
-        if ($request->enroll_type === 'section' && $request->section_id) {
-            $students = Student::where('section_id', $request->section_id)->get();
+public function enrollStudents(Request $request)
+{
+    $validated = $request->validate([
+        'subject_id' => 'required|exists:subjects,id',
+        'section_id' => 'nullable|exists:sections,id',
+        'student_id' => 'nullable|exists:students,id',
+        'enroll_type' => 'required|in:single,section',
+    ]);
 
-            foreach ($students as $student) {
-                // Check if the student is already enrolled in the subject
-                $enrollmentExists = ClassCard::where('student_id', $student->id)
-                    ->where('subject_id', $request->subject_id)
-                    ->exists();
+    if ($validated['enroll_type'] === 'section' && $validated['section_id']) {
+        // Enroll all students in the section
+        $students = Student::where('section_id', $validated['section_id'])->get();
 
-                // Only enroll if the student is not already enrolled
-                if (!$enrollmentExists) {
-                    ClassCard::create([
-                        'student_id' => $student->id,
-                        'user_id' => Auth::id(),
-                        'subject_id' => $request->subject_id,
-                        'section_id' => $request->section_id,
-                    ]);
-                }
-            }
-
-            return redirect()->route('subjects.showEnroll', ['subject_id' => $request->subject_id])
-                ->with('success', 'All students from the selected section enrolled successfully.');
+        foreach ($students as $student) {
+            ClassCard::firstOrCreate( // Prevent duplicate enrollments
+                [
+                    'student_id' => $student->id,
+                    'subject_id' => $validated['subject_id'],
+                ],
+                [
+                    'user_id' => auth()->id(),
+                    'section_id' => $validated['section_id'],
+                ]
+            );
         }
 
-        // If the enroll type is 'single', enroll the selected student
-        if ($request->enroll_type === 'single' && $request->student_id) {
-            // Check if the student is already enrolled in the subject
-            $enrollmentExists = ClassCard::where('student_id', $request->student_id)
-                ->where('subject_id', $request->subject_id)
-                ->exists();
+        return redirect()->route('subjects.showEnroll', ['subject_id' => $validated['subject_id']])
+            ->with('success', 'All students from the selected section enrolled successfully.');
+    }
 
-            // Optional: Check if student is already enrolled
-            if ($enrollmentExists) {
-                return redirect()->back()->with('error', 'Student is already enrolled in this subject.');
-            }
+    if ($validated['enroll_type'] === 'single' && $validated['student_id']) {
+        // Enroll a single student
+        $enrollment = ClassCard::firstOrCreate(
+            [
+                'student_id' => $validated['student_id'],
+                'subject_id' => $validated['subject_id'],
+            ],
+            [
+                'user_id' => auth()->id(),
+                'section_id' => $validated['section_id'],
+            ]
+        );
 
-            // Create the enrollment record
-            ClassCard::create([
-                'student_id' => $request->student_id,
-                'user_id' => Auth::id(),
-                'subject_id' => $request->subject_id,
-                'section_id' => $request->section_id,
-            ]);
-
-            return redirect()->route('subjects.showEnroll', ['subject_id' => $request->subject_id])
+        if ($enrollment->wasRecentlyCreated) {
+            return redirect()->route('subjects.showEnroll', ['subject_id' => $validated['subject_id']])
                 ->with('success', 'Student enrolled successfully.');
         }
 
-        return redirect()->back()->with('error', 'Please select a section or a student.');
+        return redirect()->back()->with('error', 'Student is already enrolled in this subject.');
     }
+
+    return redirect()->back()->with('error', 'Please select a valid section or student.');
+}
 
 
 

@@ -53,4 +53,18 @@ class User extends Authenticatable
     {
         return $this->user_type === 'teacher';
     }
+    public function subjects()
+        {
+            return $this->belongsToMany(Subject::class, 'teacher_subject_section')
+                        ->withPivot('section_id')
+                        ->withTimestamps();
+        }
+
+        public function sections()
+        {
+            return $this->belongsToMany(Section::class, 'teacher_subject_section')
+                        ->withPivot('subject_id')
+                        ->withTimestamps();
+        }
+
 }

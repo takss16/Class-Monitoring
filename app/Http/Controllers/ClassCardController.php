@@ -18,52 +18,54 @@ class ClassCardController extends Controller
 {
     public function index(Request $request)
     {
-        // Get the authenticated teacher's user_id
-        $teacherId = auth()->user()->id;
-        $subjectId = $request->input('subject_id');
+      // Get the authenticated teacher's user_id (this part is omitted as you mentioned)
+    // $teacherId = auth()->user()->id;
 
-        // Check if there are any students associated with the teacher
-        $students = Student::where('user_id', $teacherId)
-        ->orderBy('id')->get();
+    // Get the subject_id from the request
+    $subjectId = $request->input('subject_id');
 
-        // Get enrolled students for the specific subject taught by the teacher
-        $enrolledStudents = ClassCard::with('student', 'subject')
+    // Get enrolled students for the given subject (this is already done)
+    $enrolledStudents = ClassCard::with('student', 'subject')
         ->where('subject_id', $subjectId)
-        ->whereHas('student', function ($query) use ($teacherId) {
-            $query->where('user_id', $teacherId);
-        })
         ->get();
 
-        // If no enrolled students are found, redirect back with an error message
-        if ($enrolledStudents->isEmpty()) {
-            return redirect()->back()->with('error', 'There are no enrolled students for this subject yet.');
-        }
+    // If no enrolled students are found, redirect back with an error message
+    if ($enrolledStudents->isEmpty()) {
+        return redirect()->back()->with('error', 'There are no enrolled students for this subject yet.');
+    }
 
-        // Retrieve the student_id from the request, if not provided, get the first student's ID
-        $student_id = $request->input('student_id') ?? $enrolledStudents[0]->student->id;
+    // Retrieve the student_id from the request, or get the first student's ID if not provided
+    $student_id = $request->input('student_id') ?? $enrolledStudents[0]->student->id;
 
-        // Fetch the student, ensuring the student belongs to the authenticated teacher
-        $student = $students->find($student_id);
-        if (!$student) {
-            return redirect()->route('class-card.index')->with('error', 'Student not found.');
-        }
+    // Fetch the selected student from the enrolled students
+    $student = $enrolledStudents->firstWhere(function ($enrollment) use ($student_id) {
+        return $enrollment->student->id == $student_id;
+    });
 
-        $subjectName = Subject::find($subjectId)->name;
-        
-        $sections = Section::where('user_id', $teacherId)->get();
-        
-        // Fetch the class card for the student
-        $classCard = ClassCard::where('student_id', $student->id)->where('subject_id', $subjectId)->first();
+    // Check if the student is found
+    if (!$student) {
+        return redirect()->route('class-card.index')->with('error', 'Student not found.');
+    }
 
-        // Retrieve scores and group them by term, ensure classCard exists to avoid null references
-        $scores = $classCard 
-            ? Score::where('class_card_id', $classCard->id)->get()->groupBy('term') 
-            : collect(); // Return an empty collection if no class card found
+    // Access the student model from the ClassCard relationship
+    $student = $student->student;
 
-        // Initialize the 'prelim', 'midterm', and 'finals' terms
-        $scores = $scores->put('prelim', $scores->get('prelim', collect())); 
-        $scores = $scores->put('midterm', $scores->get('midterm', collect())); 
-        $scores = $scores->put('finals', $scores->get('finals', collect())); 
+    // Get the subject name from the Subject model
+    $subjectName = Subject::find($subjectId)->name;
+
+    // Get all sections related to this subject (no need for teacher filtering as mentioned)
+    $sections = Section::all();
+
+    // Fetch the class card for the student in the given subject
+    $classCard = ClassCard::where('student_id', $student->id)->where('subject_id', $subjectId)->first();
+
+    // Fetch scores for the class card and group them by term (if classCard exists)
+    $scores = $classCard ? Score::where('class_card_id', $classCard->id)->get()->groupBy('term') : collect();
+
+    // Ensure 'prelim', 'midterm', and 'finals' terms are initialized
+    $scores = $scores->put('prelim', $scores->get('prelim', collect()));
+    $scores = $scores->put('midterm', $scores->get('midterm', collect()));
+    $scores = $scores->put('finals', $scores->get('finals', collect()));
 
         $totalScore = $scores->put('prelim', $scores->get('prelim', collect())); 
         $totalScore = $scores->put('midterm', $scores->get('midterm', collect())); 
@@ -88,7 +90,7 @@ class ClassCardController extends Controller
         $selected_exam_type = $request->input('selected_exam_type');
         // return $scores;
         // Pass data to the view
-        return view('class_card.index', compact('attendancePresent', 'attendanceTotal', 'students', 'enrolledStudents', 'subjectName', 'sections', 'student', 'classCard', 'scores', 'totalScore', 'prevStudentId', 'nextStudentId', 'subjectId', 'selected_exam_type'));
+        return view('class_card.index', compact('attendancePresent', 'attendanceTotal', 'student', 'enrolledStudents', 'subjectName', 'sections', 'student', 'classCard', 'scores', 'totalScore', 'prevStudentId', 'nextStudentId', 'subjectId', 'selected_exam_type'));
     }
 
     public function performanceTaskStore(Request $request)

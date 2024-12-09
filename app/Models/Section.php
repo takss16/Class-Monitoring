@@ -15,13 +15,28 @@ class Section extends Model
         'user_id',
     ];
 
-    public function students()
-    {
-        return $this->hasMany(Student::class);
-    }
+    // public function students()
+    // {
+    //     return $this->hasMany(Student::class);
+    // }
 
     public function subject()
     {
         return $this->belongsTo(Subject::class);
     }
+
+    public function teachers()
+{
+    return $this->belongsToMany(User::class, 'teacher_subject_section', 'section_id', 'teacher_id')
+                ->withPivot('subject_id')
+                ->withTimestamps();
+}
+
+public function students()
+{
+    return $this->belongsToMany(Student::class, 'student_enrollments')
+                ->withPivot('subject_id')
+                ->withTimestamps();
+}
+
 }

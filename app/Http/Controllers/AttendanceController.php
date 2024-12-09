@@ -12,49 +12,60 @@ class AttendanceController extends Controller
 {
     public function index(Request $request)
     {
-        // Fetch students or any necessary data
-        $teacherId = auth()->user()->id;
+        // Fetch the subject ID from the request
         $subjectId = $request->input('subject_id');
-
-        $students = Student::where('user_id', $teacherId)->orderBy('id')->get();
-
+        
+        // Get all students enrolled in the given subject, along with their details
         $enrolledStudents = ClassCard::with('student', 'subject')
-        ->where('subject_id', $subjectId)
-        ->whereHas('student', function ($query) use ($teacherId) {
-            $query->where('user_id', $teacherId);
-        })
-        ->get();
-
+            ->where('subject_id', $subjectId)
+            ->get();
+            
+        
         // If no enrolled students are found, redirect back with an error message
         if ($enrolledStudents->isEmpty()) {
             return redirect()->back()->with('error', 'There are no enrolled students for this subject yet.');
         }
-
+        
+        // Get the student ID from the request or select the first enrolled student
         $student_id = $request->input('student_id') ?? $enrolledStudents[0]->student->id;
-
-        $student = $students->find($student_id);
+        
+        // Find the student from the enrolled students list
+        $student = $enrolledStudents->firstWhere(function ($enrollment) use ($student_id) {
+            return $enrollment->student->id == $student_id;
+        });
+    
+        // Check if the student is found
         if (!$student) {
             return redirect()->route('class-card.index')->with('error', 'Student not found.');
         }
-
-        // Get all student IDs that belong to the teacher
+    
+        // Get the enrolled student's ID
+        $student = $student->student; // Access the student model from the ClassCard relationship
+        
+        // Get all student IDs that are enrolled in the subject
         $studentIds = $enrolledStudents->pluck('student.id')->toArray();
-
+        
+        // Get the subject name
         $subjectName = Subject::find($subjectId)->name;
-
-        $sections = Section::where('user_id', $teacherId)->get();
-
+        
+        // Get all sections for the subject (no need to filter by user_id)
+        $sections = Section::all();
+        
         // Determine previous and next student IDs
         $currentIndex = array_search($student_id, $studentIds);
         $prevStudentId = $currentIndex > 0 ? $studentIds[$currentIndex - 1] : null;
         $nextStudentId = $currentIndex < count($studentIds) - 1 ? $studentIds[$currentIndex + 1] : null;
-
-        // Fetch attendance records for the student
+        
+        // Fetch attendance records for the selected student
         $attendanceRecords = Attendance::where('student_id', $student_id)->where('type', 1)->get(); // For lectures
         $labAttendanceRecords = Attendance::where('student_id', $student_id)->where('type', 2)->get(); // For labs
-        // return $labAttendanceRecords;
+        
+        // Return the view with necessary data
         return view('attendance.index', compact('student', 'enrolledStudents', 'prevStudentId', 'nextStudentId', 'attendanceRecords', 'labAttendanceRecords', 'sections', 'subjectId', 'subjectName', 'studentIds'));
     }
+    
+    
+    
 
 
     public function store(Request $request)

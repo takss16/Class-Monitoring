@@ -70,7 +70,7 @@
                                 <select name="section_id" id="section" class="form-control" onchange="filterSection(this.value)">
                                     <option value="">Select Section</option>
                                     @foreach ($sections as $section)
-                                        <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                        <option value="{{ $section->id }}">{{ $section->name }} - {{ $section->description }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -83,12 +83,12 @@
                                 </select>
                             </div>
                             <div class="col-4">
-                                <!-- Button to trigger modal -->
                                 <button type="submit" class="btn btn-primary mb-3">
                                     Enroll Student
                                 </button>
                             </div>
                         </div>
+                        
                     </form>
 
 
@@ -106,7 +106,7 @@
                                         @foreach ($enrolls as $enroll)
                                             <tr>
                                                 <td>{{ $enroll->student->first_name }} {{ $enroll->student->middle_name }} {{ $enroll->student->last_name }}</td>
-                                                <td>{{ $enroll->student->section->name }}</td>
+                                                <td>{{ $enroll->student->section->name }}-{{ $enroll->student->section->description }}</td>
                                                 <td>
                                                 <form action="{{ route('subjects.enrolls.destroy', $enroll->id) }}" method="POST" onsubmit="return confirmDelete();">
                                                     @csrf
@@ -127,26 +127,28 @@
         </div>
     </div>
     <script>
-        function filterSection(sectionID){
-            const studentSelect = document.getElementById("student_id");
-            studentSelect.innerHTML = '<option value="">Select Student</option>';
-            @foreach ($students as $student)
-                if(sectionID == "{{ $student->section_id }}") {
-                    studentSelect.innerHTML += '<option value="{{ $student->id }}">{{ $student->first_name }} {{ $student->middle_name }} {{ $student->last_name }}</option>';
-                }else if(sectionID == "") {
-                    studentSelect.innerHTML += '<option value="{{ $student->id }}">{{ $student->first_name }} {{ $student->middle_name }} {{ $student->last_name }}</option>';
-                }
-            @endforeach
-            setEnrollType('');
-        }
-        function setEnrollType(studentID) {
-            const enrollTypeField = document.getElementById('enroll_type');
-            enrollTypeField.value = studentID ? 'single' : 'section'; // Set to 'single' if a student is selected, otherwise 'section'
-        }
-        function confirmDelete() {
-            return confirm("Are you sure you want to delete this enrollment?");
-        }
-    </script>
+        function filterSection(sectionID) {
+        const studentSelect = document.getElementById("student_id");
+        studentSelect.innerHTML = '<option value="">Select Student</option>';
     
+        @foreach ($students as $student)
+            if (sectionID == "{{ $student->section_id }}" || sectionID == "") {
+                studentSelect.innerHTML += `<option value="{{ $student->id }}">{{ $student->first_name }} {{ $student->middle_name }} {{ $student->last_name }}</option>`;
+            }
+        @endforeach
+    
+        setEnrollType('');
+    }
+    
+    function setEnrollType(studentID) {
+        const enrollTypeField = document.getElementById('enroll_type');
+        enrollTypeField.value = studentID ? 'single' : 'section';
+    }
+    
+    function confirmDelete() {
+        return confirm("Are you sure you want to delete this enrollment?");
+    }
+    
+    </script>
 
 @endsection

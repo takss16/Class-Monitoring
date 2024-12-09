@@ -45,8 +45,22 @@ class Student extends Model
         return $this->hasMany(Attendance::class);
     }
 
+    // public function enrollments()
+    // {
+    //     return $this->hasMany(ClassCard::class);
+    // }
     public function enrollments()
-    {
-        return $this->hasMany(ClassCard::class);
-    }
+        {
+            return $this->belongsToMany(Section::class, 'student_enrollments')
+                        ->withPivot('subject_id')
+                        ->withTimestamps();
+        }
+
+        public function subjects()
+        {
+            return $this->belongsToMany(Subject::class, 'student_enrollments')
+                        ->withPivot('section_id')
+                        ->withTimestamps();
+        }
+
 }
