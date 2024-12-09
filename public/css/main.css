@@ -1,0 +1,99 @@
+body {
+    background: linear-gradient(to bottom, #89f7fe, #66a6ff);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Figtree', sans-serif;
+    margin: 0;
+}
+
+.custom-container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: white;
+}
+
+.left-panel, .right-panel {
+    padding: 40px;
+}
+
+.left-panel {
+    flex: 1;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.left-panel img {
+    max-width: 100px;
+    margin-bottom: 20px;
+}
+
+.left-panel h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.left-panel p {
+    font-size: 18px;
+    color: #555;
+}
+
+.right-panel {
+    flex: 1;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+    width: 100%;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.card-header {
+    background: none;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0;
+}
+
+.card-body {
+    padding-top: 0;
+}
+
+.form-group label {
+    font-weight: bold;
+}
+
+.form-check-label {
+    margin-left: 1.25rem;
+}
+
+/* Make the logo responsive */
+.responsive-logo {
+    max-width: 150px; /* Default size for larger screens */
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .responsive-logo {
+        max-width: 100px; /* Smaller size for tablet screens */
+    }
+}
+
+@media (max-width: 576px) {
+    .responsive-logo {
+        max-width: 80px; /* Smaller size for mobile screens */
+    }
+}
