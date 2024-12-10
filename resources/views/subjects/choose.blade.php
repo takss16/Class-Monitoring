@@ -33,7 +33,7 @@
                         </div> -->
 
                         <!-- Form for selecting multiple subjects -->
-                        <form action="" method="POST">
+                        <form action="{{ route('chooseSubjects') }}" method="POST">
                             @csrf
 
                             <!-- Table for displaying subjects with checkboxes -->

@@ -54,8 +54,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/sections', [SectionController::class, 'store'])->name('sections.store');
     Route::put('/sections/{section}', [SectionController::class, 'update'])->name('sections.update');
     Route::delete('/sections/{section}', [SectionController::class, 'destroy'])->name('sections.destroy');
+    Route::get('/sections/{section}/students', [SectionController::class, 'showStudents'])->name('sections.students');
+
+
     
     Route::get('/choose-subjects', [SubjectController::class, 'chooseSubjects'])->name('subjects.choose');
+    Route::post('/choose-subj', [SubjectController::class, 'selectSubjects'])->name('chooseSubjects');
     // Subjects
     Route::get('/subjects', [SubjectController::class, 'index'])->name('subjects.index');
     // Route::get('/subjects/create', [SubjectController::class, 'create'])->name('subjects.create');
@@ -70,6 +74,7 @@ Route::middleware(['auth'])->group(function () {
     // Other authenticated routes...
 
     route::get('/students', [StudentController::class, 'index'])->name('students.index');
+    route::get('/admin/students', [StudentController::class, 'adminIndex'])->name('admin.students.index');
     route::get('students/create', [StudentController::class, 'create'])->name('students.create');
     Route::post('students/store', [StudentController::class, 'store'])->name('students.store');
     Route::put('/students/{student}', [StudentController::class, 'update'])->name('students.update');

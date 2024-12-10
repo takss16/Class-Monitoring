@@ -13,6 +13,23 @@ use App\Models\Enrollment;
 
 class SubjectController extends Controller
 {
+    public function selectSubjects(Request $request)
+    {
+        // Your logic here
+        $request->validate([
+            'subjects' => 'required|array',
+            'subjects.*' => 'exists:subjects,id',
+        ]);
+    // Get the currently authenticated user
+    $userId = Auth::id();
+
+    // Update the user_id field for each selected subject
+    $selectedSubjects = $request->input('subjects');
+    Subject::whereIn('id', $selectedSubjects)->update(['user_id' => $userId]);
+
+    // Redirect back with a success message
+    return redirect()->back()->with('success', 'Subjects successfully updated.');
+}
     public function index()
     {
         if (auth()->user()->user_type == 'admin') {
@@ -24,12 +41,11 @@ class SubjectController extends Controller
     }
     public function chooseSubjects()
     {
-        $subjects = Subject::all();
-
+        $subjects = Subject::where('user_id', 1)->get();
+        
         $sections = Section::all();
         return view('subjects.choose', compact('subjects', 'sections'));
     }
-
     public function create()
     {
         return view('subjects.create');

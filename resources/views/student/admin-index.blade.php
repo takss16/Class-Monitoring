@@ -62,16 +62,14 @@
                         <!-- Dropdown for exporting -->
                         <div class="row">
                             <div class="col-6">
-                                @if (Auth::user()->user_type == 'admin')
-
                             <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createStudentModal">
                                 Add Student
                             </button>
 
                             <button type="button" class="btn btn-secondary mb-3" data-bs-toggle="modal" data-bs-target="#uploadExcelModal">
                                 Upload Excel
-                            </button>                              
-                            @endif
+                            </button>
+
                             <a href="{{ route('students.exportStudentSheet') }}" class="btn btn-primary mb-3">
                                 Generate Sheet
                             </a>
@@ -81,16 +79,15 @@
                             </div>
                         </div>
                         
-
-                        <!-- Dropdowns for filtering -->
                         <form method="GET" action="{{ route('students.index') }}">
                             <div class="row mb-3">
                                 <div class="col-md-5">
                                     <select class="form-control" name="section_id">
                                         <option value="">All</option>
                                         @foreach($sections as $section)
-                                            <option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : '' }}>
-                                                {{ $section->name }}-{{ $section->description}}
+                                            <option value="{{ $section->id }}" 
+                                                {{ request('section_id') == $section->id ? 'selected' : '' }}>
+                                                {{ $section->name }} - {{ $section->description }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -100,7 +97,7 @@
                                 </div>
                             </div>
                         </form>
-
+                        
                         <table class="table">
                             <thead>
                                 <tr>
@@ -109,7 +106,7 @@
                                     <th>Gender</th>
                                     <th>Date of Birth</th>
                                     <th>Course</th>
-                                    <th>Student type</th>
+                                    <th>Student Type</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -124,7 +121,7 @@
                                         <td>{{ $student->student_type }}</td>
                                         <td>
                                             <!-- Edit Button -->
-                                            <button type="button" class="btn btn-sm btn-primary" onclick="showEditModal({{ $student }})">
+                                            <button type="button" class="btn btn-sm btn-primary" onclick="showEditModal({{ $student->id }})">
                                                 Edit
                                             </button>
                                             <!-- Delete Button -->
@@ -136,6 +133,7 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        
                     </div>
                 </div>
 
@@ -153,7 +151,7 @@
                 </div>
                 <div class="modal-body">
                     <!-- Form for creating student -->
-                    <form method="POST" action="{{ route('students.store') }}">
+                    <form method="POST" action="{{ route('admin.students.index') }}">
                         @csrf
                         <div class="mb-3">
                             <label for="student_number" class="form-label">Student Number</label>

@@ -75,7 +75,7 @@
             </a>
         </div>
         <div class="side-link">
-            <a class="nav-link collapsed" href="{{ route('students.index') }}">
+            <a class="nav-link collapsed" href="{{ route('admin.students.index') }}">
                 <i class="bi bi-people"></i><span> Manage Students</span>
             </a>
         </div>
