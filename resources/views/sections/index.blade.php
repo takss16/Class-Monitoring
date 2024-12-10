@@ -58,9 +58,14 @@
                     <div class="card-body">
                         <h5 class="card-title text-center" style="color: #012970;">Sections</h5>
                         <!-- Button to trigger create modal -->
-                        <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createSectionModal">
-                            Create Section
-                        </button>
+                        @if(auth()->user()->user_type == 'admin')
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSectionModal">
+                                Create Section
+                            </button>
+                        </div>
+                        @endif
+                        
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
@@ -77,15 +82,24 @@
                                         <td>{{ $section->name }}-{{ $section->description}}</td>
                                         
                                         <td>
+                                            
                                             <div class="text-center">
-                                            <!-- Edit Button -->
-                                            <button type="button" class="btn btn-sm btn-primary" onclick="showEditModal({{ $section }})">
-                                                Edit
-                                            </button>
-                                            <!-- Delete Button -->
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="showDeleteModal({{ $section->id }})">
-                                                Delete
-                                            </button>
+                                                @if(auth()->user()->user_type == 'teacher')
+                                                <a href="{{ route('sections.students', $section->id) }}" class="btn btn-sm btn-primary">
+                                                    View Students
+                                                </a>
+                                                
+                                                @endif
+                                                @if(auth()->user()->user_type == 'admin')
+                                                    <!-- Edit Button -->
+                                                    <button type="button" class="btn btn-sm btn-primary" onclick="showEditModal({{ $section }})">
+                                                        Edit
+                                                    </button>
+                                                    <!-- Delete Button -->
+                                                    <button type="button" class="btn btn-sm btn-danger" onclick="showDeleteModal({{ $section->id }})">
+                                                        Delete
+                                                    </button>
+                                                 @endif
                                             </div>
                                            
                                         </td>

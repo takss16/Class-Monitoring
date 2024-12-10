@@ -43,7 +43,7 @@
                         @if(isset($sections))
                             @foreach($sections as $section)
                                 <option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : ($student->section->id == $section->id ? 'selected' : '') }}>
-                                    {{ $section->name }}
+                                    {{ $section->name }}-{{ $section->description}}
                                 </option>
                             @endforeach
                         @endif

@@ -32,11 +32,16 @@ class Section extends Model
                 ->withTimestamps();
 }
 
+// public function students()
+// {
+//     return $this->belongsToMany(Student::class, 'student_enrollments')
+//                 ->withPivot('subject_id')
+//                 ->withTimestamps();
+// }
 public function students()
 {
-    return $this->belongsToMany(Student::class, 'student_enrollments')
-                ->withPivot('subject_id')
-                ->withTimestamps();
+    return $this->hasMany(Student::class, 'section_id', 'id');
 }
+
 
 }

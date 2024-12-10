@@ -3,17 +3,65 @@
 namespace App\Http\Controllers;
 
 use App\Models\Section;
+use App\Models\Student;
+use App\Models\ClassCard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SectionController extends Controller
 {
 
-    public function index()
-    {   
-        $sections = Section::all();
-        return view('sections.index', compact('sections'));
+    public function showStudents($sectionId)
+    {
+        // Get the authenticated user
+        $user = auth()->user();
+    
+        // Fetch the section
+        $section = Section::findOrFail($sectionId);
+    
+        // Fetch students enrolled in the section through ClassCard
+        $students = ClassCard::with('student')
+            ->where('section_id', $sectionId)
+            ->when($user->user_type === 'teacher', function ($query) use ($user) {
+                return $query->where('user_id', $user->id); // Filter by authenticated user's ID for teachers
+            })
+            ->get()
+            ->map(function ($classCard) {
+                return $classCard->student; // Extract the associated student
+            });
+            
+    
+        // Pass data to the view
+        return view('sections.students', compact('section', 'students'));
     }
+    
+    
+
+
+    public function index()
+{
+    if (auth()->user()->user_type == 'admin') {
+        $sections = Section::all();
+    } else {
+        $sections = ClassCard::where('user_id', Auth::id())
+        ->whereHas('section') // Ensure there's an associated section
+        ->with('section')     // Load the related section
+        ->get()
+        ->pluck('section')    // Extract sections
+        ->unique('id')        // Remove duplicates based on the section ID
+        ->values();           // Reindex the collection (optional, for clean output)
+
+    }
+    
+  
+    return view('sections.index', compact('sections'));
+}
+
+    // public function index()
+    // {   
+    //     $sections = Section::all();
+    //     return view('sections.index', compact('sections'));
+    // }
 
     public function store(Request $request)
     {

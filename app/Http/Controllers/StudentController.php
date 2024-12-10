@@ -20,32 +20,74 @@ class StudentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function adminIndex(Request $request)
     {
-        // Get the currently authenticated teacher's ID
-        $teacherId = auth()->user()->id;
-
-        // Fetch the subject and section filter from the request
-        $subjectId = $request->input('subject_id');
+        // Get the currently authenticated user
+        $user = auth()->user();
+    
+        // Fetch the section filter from the request
         $sectionId = $request->input('section_id');
-
-        // Start with the query to fetch students related to the teacher
-        $query = Student::where('user_id', $teacherId);
-
+        
+        // Start with the query to fetch all students
+        $query = Student::query();
+        
         // Apply section filter if selected
         if ($sectionId) {
             $query->where('section_id', $sectionId);
         }
-
+        
         // Get the filtered or unfiltered list of students, ordered by id in descending order
         $students = $query->orderBy('id', 'desc')->get();
+        
 
-        // Fetch sections and subjects related to the teacher for the dropdowns
-        $sections = Section::where('user_id', $teacherId)->get();
-
-        // Return the view with the list of students and dropdown data
-        return view('student.index', compact('students', 'sections'));
+        $sections = Section::all(); 
+        
+        // Return the view with the list of students and sections
+        return view('student.index', compact('students', 'sections', 'sectionId'));
     }
+    
+    
+    public function index(Request $request)
+{
+    // Fetch section and subject filters from the request
+    $sectionId = $request->input('section_id');
+    $subjectId = $request->input('subject_id');
+
+    // Start with the query to fetch students enrolled in ClassCard
+    $query = ClassCard::with('student');
+
+    // Apply the section filter if provided
+    if ($sectionId) {
+        $query->where('section_id', $sectionId);
+    }
+
+    // Apply the subject filter if provided
+    if ($subjectId) {
+        $query->where('subject_id', $subjectId);
+    }
+
+    // Get the ClassCard records and map them to students
+    $students = $query->get()
+        ->map(function ($classCard) {
+            return $classCard->student; // Extract the associated student from each ClassCard
+        });
+
+    // Fetch all sections (for both admin and teacher)
+    $sections = ClassCard::where('user_id', Auth::id())
+        ->whereHas('section') // Ensure there's an associated section
+        ->with('section')     // Load the related section
+        ->get()
+        ->pluck('section')    // Extract sections
+        ->unique('id')        // Remove duplicates based on the section ID
+        ->values();     
+
+    // Fetch subjects (for both admin and teacher)
+    $subjects = Subject::all();
+
+    // Return the view with the list of students, sections, and subjects
+    return view('student.index', compact('students', 'sections', 'subjects'));
+}
+
 
     /**
      * Show the form for creating a new resource.
