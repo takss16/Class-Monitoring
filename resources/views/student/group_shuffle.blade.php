@@ -40,10 +40,10 @@
                 <div class="form-group">
                     <label for="section">Select Section:</label>
                     <select class="form-control" id="section" name="section_id">
-                        <option value="">All Sections</option>
+                        <option value="">Select Sections</option>
                         @if(isset($sections))
                             @foreach($sections as $section)
-                                <option value="{{ $section->id }}" {{ isset($sectionId) && $sectionId == $section->id ? 'selected' : '' }}>{{ $section->name }}</option>
+                                <option value="{{ $section->id }}" {{ isset($sectionId) && $sectionId == $section->id ? 'selected' : '' }}>{{ $section->name }}-{{ $section->description}}</option>
                             @endforeach
                         @endif
                     </select>
