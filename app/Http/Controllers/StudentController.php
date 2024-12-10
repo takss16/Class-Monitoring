@@ -382,7 +382,13 @@ class StudentController extends Controller
         $subjectId = $request->input('subject_id');
 
         // Fetch sections and subjects for the dropdowns
-        $sections = Section::where('user_id', $teacherId)->get();
+        $sections = ClassCard::where('user_id', Auth::id())
+        ->whereHas('section') // Ensure there's an associated section
+        ->with('section')     // Load the related section
+        ->get()
+        ->pluck('section')    // Extract sections
+        ->unique('id')        // Remove duplicates based on the section ID
+        ->values();     
 
         // Initialize variables to hold selected section and other necessary data
         $sectionId = null;
